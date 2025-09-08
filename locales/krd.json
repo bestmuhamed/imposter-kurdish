@@ -1,0 +1,28 @@
+{
+  "title": "Imposter (Kurdî)",
+  "subtitle": "Yek kes Imposter e. Yên din hevokê dibînin.",
+  "language": "Ziman",
+  "players": "Lîstikvan",
+  "playerName": "Navê Lîstikvanê {{i}}",
+  "category": "Kategoriya",
+  "any": "Her yek",
+  "pickWord": "Hevokê bîne",
+  "start": "Dest pê bike",
+  "revealFor": "Nîşan bide",
+  "youAreImposter": "Tu yî Imposter. Tu hevokê nizanî.",
+  "yourWord": "Hevoka te",
+  "next": "Pêş",
+  "allSet": "Hemû amade!",
+  "discuss": "Niha axaftinê bike. Imposter bibîne.",
+  "reset": "Veguheze",
+  "newWord": "Hevoka nû",
+  "guide": "Rehber",
+  "steps": [
+    "Hejmara Lîstikvanan hilbijêre û navên wan binivîse.",
+    "Bi rêzê yeke yek nîşan bide.",
+    "Bi axivin û Imposter bibînin."
+  ],
+  "revealCard": "Kartê veke",
+  "swipeHint": "Kartê xwe ber bi jorê bixe da gotinê bibînî. Hewl bide ku kesî din nebîne."
+
+}

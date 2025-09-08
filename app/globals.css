@@ -1,0 +1,101 @@
+:root {
+  --bg: #0b0f14;
+  --card: #0f1621;
+  --muted: #9fb0c0;
+  --text: #eaf2f9;
+  --accent: #4da3ff;
+  --border: #1f2b3a;
+  --ok: #2ecc71;
+  --warn: #ffcc66;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
+main { max-width: 900px; margin: 0 auto; padding: 28px 20px 64px; }
+
+.h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; }
+.sub { color: var(--muted); margin-bottom: 24px; }
+
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.grid { display: grid; gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+.hr { height: 1px; background: var(--border); margin: 20px 0; }
+
+label { font-size: 14px; color: var(--muted); display: block; margin-bottom: 6px; }
+input, select, button, .btn {
+  background: #0b1220; color: var(--text); border: 1px solid var(--border);
+  padding: 10px 12px; border-radius: 10px;
+}
+input, select { width: 100%; }
+button, .btn { cursor: pointer; }
+button:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-accent { background: var(--accent); border-color: var(--accent); color: #001428; font-weight: 600; }
+.btn-ghost { background: transparent; }
+.badge { display:inline-block; padding:4px 8px; border:1px solid var(--border); border-radius:999px; color:var(--muted); }
+.title { display:flex; align-items:center; gap:10px; }
+.title img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border:1px solid var(--border); }
+.word { font-size: 20px; font-weight: 700; }
+.reveal { font-size: 18px; }
+
+
+
+/* ===== Reveal Card (fix height) ===== */
+.reveal-card{
+  position: relative;
+  height: 380px;              /* << feste Höhe, sonst kollabiert */
+  background: #10151c;        /* Fallback, wenn kein Bild da ist */
+  border-radius: 18px;
+  border: 2px solid rgba(255,255,255,.85);
+  overflow: hidden;
+}
+
+/* Ebenen + Bilder füllen die Karte immer */
+.reveal-layer{ position:absolute; inset:0; transition:opacity .25s ease; }
+.reveal-layer.hidden{ opacity:0; pointer-events:none; }
+.reveal-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Name mittig, nur sichtbar wenn geschlossen */
+.reveal-name {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;              /* größer */
+  font-weight: 900;
+  color: #ffffff;
+  text-align: center;
+  letter-spacing: 1px;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,0.9), /* starker dunkler Rand */
+    0 0 10px rgba(0,0,0,0.7);  /* Glow für Kontrast */
+  z-index: 2;                   /* immer im Vordergrund */
+  opacity: 1;                   /* volle Sichtbarkeit */
+  pointer-events: none;
+  transition: opacity .25s;
+}
+.reveal-name.hidden {
+  opacity: 0;
+}
+
+
+.reveal-name.hidden{ opacity:0; }
+
+/* Overlay oben drauf */
+.reveal-overlay{
+  position:absolute; inset:0; z-index:3;
+  background: linear-gradient(180deg, rgba(255,60,60,.9) 0%, rgba(255,60,60,.85) 60%, rgba(255,60,60,.25) 100%);
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  padding:24px 16px; transition: transform .25s ease; touch-action:none;
+}
+.reveal-overlay .arrow{
+  width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent;
+  border-bottom:14px solid #fff; margin-bottom:10px;
+}
+.reveal-overlay .cta{ color:#fff; font-weight:800; font-size:20px; margin-bottom:8px; text-align:center; text-shadow:0 2px 6px rgba(0,0,0,.35); }
+
+/* Panel unten */
+.word-panel{ background:#000; color:#fff; border-radius:18px; padding:20px; text-align:center; }
+.word-panel .word{ font-size:28px; font-weight:800; margin-top:8px; }
+.panel-actions{ margin-top:14px; display:flex; justify-content:center; }

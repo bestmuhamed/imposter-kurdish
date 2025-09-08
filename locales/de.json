@@ -1,0 +1,27 @@
+{
+  "title": "Imposter (Kurdî Edition)",
+  "subtitle": "Eine Person ist der Imposter. Alle anderen sehen das geheime Wort.",
+  "language": "Sprache",
+  "players": "Spieler",
+  "playerName": "Name Spieler {{i}}",
+  "category": "Kategorie",
+  "any": "Beliebig",
+  "pickWord": "Wort holen",
+  "start": "Spiel starten",
+  "revealFor": "Zeigen für",
+  "youAreImposter": "Du bist der Imposter. Du kennst das Wort nicht.",
+  "yourWord": "Dein Wort",
+  "next": "Weiter",
+  "allSet": "Alles bereit!",
+  "discuss": "Jetzt diskutieren. Findet den Imposter.",
+  "reset": "Zurücksetzen",
+  "newWord": "Neues Wort",
+  "guide": "Anleitung",
+  "steps": [
+    "Wähle die Anzahl der Spieler und gib ihre Namen ein.",
+    "Decke die Karten der Reihe nach nacheinander auf.",
+    "Diskutiert und findet heraus, wer der Impostor ist."
+  ],
+  "revealCard": "Karte aufdecken",
+  "swipeHint": "Ziehe deine Karte nach oben, um das Wort zu sehen. Achte darauf, dass niemand sonst es sieht."
+}
