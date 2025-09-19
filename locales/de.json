@@ -23,5 +23,17 @@
     "Diskutiert und findet heraus, wer der Impostor ist."
   ],
   "revealCard": "Karte aufdecken",
-  "swipeHint": "Ziehe deine Karte nach oben, um das Wort zu sehen. Achte darauf, dass niemand sonst es sieht."
+  "swipeHint": "Ziehe deine Karte nach oben, um das Wort zu sehen. Achte darauf, dass niemand sonst es sieht.",
+
+  "home__badge": "MINI GAMES",
+  "home__title": "Party-Spiele Hub",
+  "home__lead_prefix": "Wähle ein Spiel aus. Los geht’s mit unserem Wortspiel",
+  "imposter__desc": "Multilinguales Wortspiel mit Bildkarten. Einer kennt das Wort nicht – finde den Imposter!",
+  "imposter__cta": "Spiel starten",
+  "imposter__players_range": "3–12 Spieler",
+  "soon__title": "Demnächst",
+  "soon__desc": "Weitere Mini-Games folgen – gleiche Oberfläche, viel Spaß.",
+  "soon__btn": "In Arbeit",
+  "home__tip": "Tipp: Du kannst jederzeit zurück zur Übersicht mit der Browser-Zurück-Taste.",
+  "duelHint": "Stellt euch abwechselnd Ja/Nein-Fragen, bis jede*r das eigene Zielwort erraten hat."
 }

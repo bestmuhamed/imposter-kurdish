@@ -1,283 +1,196 @@
 'use client'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { getDict, LANG_OPTIONS } from '@/lib/i18n'
-
-type Player = { id: number; name: string }
-type WordPayload = { id: string; word_en: string; term: string; imageUrl?: string | null }
-
-
-const CATEGORIES = [
-  { slug: '', label: 'any' }, { slug: 'food', label: 'Food' }, { slug: 'places', label: 'Places' },
-  { slug: 'objects', label: 'Objects' }, { slug: 'animals', label: 'Animals' }, { slug: 'body', label: 'Body' },
-  { slug: 'colors', label: 'Colors' }, { slug: 'professions', label: 'Professions' }, { slug: 'time', label: 'Time' }
-]
-
-// ---- Unsplash Helper ----
-async function getUnsplash(query: string) {
-  console.log('[Unsplash] Suche nach:', query)
-  try {
-    const r = await fetch('/api/unsplash?q=' + encodeURIComponent(query), { cache: 'no-store' })
-    if (!r.ok) {
-      console.error('[Unsplash] Fehlerstatus', r.status)
-      return undefined
-    }
-    const { photos } = await r.json()
-    console.log('[Unsplash] Ergebnis:', photos)
-    return photos?.[0]
-  } catch (e) {
-    console.error('[Unsplash] Exception:', e)
-    return undefined
-  }
-}
+import Link from 'next/link'
+import { useLanguage } from './_components/LanguageProvider'
+import { getDict } from '@/lib/i18n'
 
 export default function Page() {
-  const [lang, setLang] = useState<'en' | 'de' | 'krd'>('krd')
+  const { lang } = useLanguage()
   const t = getDict(lang)
-  const [count, setCount] = useState(5)
-  const [players, setPlayers] = useState<Player[]>(
-    Array.from({ length: 5 }, (_, i) => ({ id: i, name: '' }))
-  )
-  const [category, setCategory] = useState('')
-  const [word, setWord] = useState<WordPayload | null>(null)
-  const [imposterId, setImposterId] = useState<number | null>(null)
-  const [started, setStarted] = useState(false)
-  const [revealFor, setRevealFor] = useState<number | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const [imageCredit, setImageCredit] = useState<{author?:string; author_link?:string; source_link?:string} | null>(null)
-
-  // Swipe state
-  const [overlayY, setOverlayY] = useState(0)
-  const [opened, setOpened] = useState(false)
-  const startY = useRef<number | null>(null)
-  const MAX = 260, THRESH = 200
-
-  useEffect(() => {
-    setPlayers(p => Array.from({ length: count }, (_, i) => p[i] ?? { id: i, name: '' }))
-  }, [count])
-
-  const allNamesFilled = useMemo(
-    () => players.slice(0, count).every(p => p.name.trim().length > 0), [players, count]
-  )
-
-  async function fetchWord(params: { lang: string; category?: string }) {
-    const q = new URLSearchParams({ lang: params.lang })
-    if (params.category) q.set('category', params.category)
-    console.log('[WordAPI] Abrufen mit Params:', q.toString())
-    const res = await fetch('/api/word?' + q.toString(), { cache: 'no-store' })
-    const data = await res.json()
-    if (!res.ok) {
-      console.error('[WordAPI] Fehler:', data)
-      throw new Error(data?.error || 'fetch error')
-    }
-    console.log('[WordAPI] Ergebnis:', data)
-    return { id: data.id, word_en: data.word_en, term: data.term, imageUrl: data.imageUrl } as WordPayload
-  }
-
-  async function startGame() {
-    if (!allNamesFilled) {
-      console.warn('[Game] Nicht alle Namen ausgefüllt')
-      return
-    }
-    try {
-      setIsLoading(true)
-      console.log('[Game] Starte Spiel…')
-      const w = await fetchWord({ lang, category: category || undefined })
-      console.log('[Game] Kein Bild in DB, hole von Unsplash')
-      const u = await getUnsplash(w.word_en)
-      if (u?.url) {
-        w.imageUrl = u.url
-        setImageCredit({ author: u.author, author_link: u.author_link, source_link: u.source_link })
-        console.log('[Game] Unsplash Bild gesetzt:', u.url)
-      } else {
-        setImageCredit(null)
-        console.warn('[Game] Kein Unsplash Bild gefunden')
-      }
-      setWord(w)
-      setImposterId(Math.floor(Math.random() * count))
-      setStarted(true)
-      setRevealFor(0)
-      resetOverlay()
-    } finally { setIsLoading(false) }
-  }
-
-  function nextReveal() {
-    if (revealFor == null) return
-    const n = revealFor + 1
-    if (n < count) { setRevealFor(n); resetOverlay() } else { setRevealFor(null) }
-  }
-  function resetGame() { 
-    console.log('[Game] Reset')
-    setStarted(false); setRevealFor(null); setImposterId(null); setWord(null); resetOverlay(); setImageCredit(null) 
-  }
-  function newRound() { 
-    console.log('[Game] Neue Runde')
-    setStarted(false); setRevealFor(null); setImposterId(null); setWord(null); resetOverlay(); setImageCredit(null); startGame() 
-  }
-
-  function resetOverlay() { setOverlayY(0); setOpened(false); startY.current = null }
-
-  // pointer handlers
-  const onDown = (e: React.PointerEvent<HTMLDivElement>) => { e.currentTarget.setPointerCapture(e.pointerId); startY.current = e.clientY }
-  const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (startY.current == null) return
-    const dy = startY.current - e.clientY
-    setOverlayY(Math.max(0, Math.min(dy, MAX)))
-  }
-  const onUp = async () => {
-    const openedNow = overlayY >= THRESH
-    setOpened(openedNow)
-    console.log('[Swipe] Released. openedNow=', openedNow, 'overlayY=', overlayY)
-    if (!openedNow) setOverlayY(0)
-    startY.current = null
-
-    if (openedNow && word && !word.imageUrl) {
-      console.log('[Swipe] Wort geöffnet, aber kein Bild. Hole Unsplash nach.')
-      const u = await getUnsplash(word.term)
-      if (u?.url) {
-        setWord(prev => prev ? { ...prev, imageUrl: u.url } : prev)
-        setImageCredit({ author: u.author, author_link: u.author_link, source_link: u.source_link })
-        console.log('[Swipe] Unsplash Bild nachgeladen:', u.url)
-      } else {
-        console.warn('[Swipe] Auch nachträglich kein Unsplash Bild gefunden')
-      }
-    }
-  }
 
   return (
-    <main>
-      {/* Setup */}
-      {!started && (
-        <div className="grid" style={{ gridTemplateColumns: '1fr', gap: 16 }}>
-          <div className="card">
-            <div className="row">
-              <div style={{ flex: 1, minWidth: 220 }}>
-                <label>{t.language}</label>
-                <select value={lang} onChange={e => setLang(e.target.value as any)}>
-                  {LANG_OPTIONS.map(o => <option key={o.code} value={o.code}>{o.label}</option>)}
-                </select>
-              </div>
-              <div style={{ width: 160 }}>
-                <label>{t.players}</label>
-                <input type="number" min={3} max={12} value={count}
-                  onChange={e => setCount(Math.max(3, Math.min(12, Number(e.target.value))))} />
-              </div>
-              <div style={{ flex: 1, minWidth: 220 }}>
-                <label>{t.category}</label>
-                <select value={category} onChange={e => setCategory(e.target.value)}>
-                  {[{ slug: '', label: t.any }, ...CATEGORIES.filter(c => c.slug)].map(c =>
-                    <option key={c.slug || 'any'} value={c.slug}>{c.label}</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {players.slice(0, count).map((p, i) => (
-                <div key={p.id}>
-                  <label>{t.playerName.replace('{{i}}', String(i + 1))}</label>
-                  <input value={p.name}
-                    onChange={e => setPlayers(arr => arr.map(x => x.id === p.id ? { ...x, name: e.target.value } : x))}
-                    placeholder={t.playerName.replace('{{i}}', String(i + 1))} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="row">
-            <button className="btn btn-accent" onClick={startGame} disabled={!allNamesFilled || isLoading}>
-              {isLoading ? '…' : `▶️ ${t.start}`}
-            </button>
-          </div>
+    <main
+      style={{
+        minHeight: '100dvh',
+        display: 'grid',
+        placeItems: 'center',
+        padding: 24,
+        background:
+          'radial-gradient(1200px 600px at 20% -10%, rgba(255,255,255,.08), transparent), radial-gradient(1000px 500px at 120% 10%, rgba(255,255,255,.05), transparent)'
+      }}
+    >
+      <div
+        className="card"
+        style={{
+          width: '100%',
+          maxWidth: 780,
+          padding: 24,
+          borderRadius: 16,
+          boxShadow: '0 10px 30px rgba(0,0,0,.15)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04))',
+          backdropFilter: 'blur(6px)'
+        }}
+      >
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <div style={{ fontSize: 14, letterSpacing: 1.4, opacity: 0.75 }}>{t.home__badge}</div>
+          <h1 style={{ fontSize: 34, margin: '8px 0 6px' }}>{t.home__title}</h1>
+          <p style={{ opacity: 0.8, fontSize: 16 }}>
+            {t.home__lead_prefix} <em>Imposter</em>.
+          </p>
         </div>
-      )}
 
-      {/* Reveal */}
-      {started && revealFor !== null && (
-        <>
-          <div className="reveal-card">
-            {/* Avatar-Layer */}
-            <div className={`reveal-layer ${opened ? 'hidden' : ''}`} aria-hidden={opened}>
-              <img className="reveal-img" src="/avatar.png" alt="avatar" />
+        {/* Liste */}
+        <div
+          className="grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: 16,
+            marginTop: 16
+          }}
+        >
+          {/* Imposter Game Karte */}
+          <article
+            style={{
+              border: '1px solid rgba(255,255,255,.12)',
+              borderRadius: 14,
+              padding: 16,
+              display: 'grid',
+              alignContent: 'space-between',
+              gap: 12,
+              background: 'linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08))'
+            }}
+          >
+            <header>
+              <div style={{ fontSize: 28, lineHeight: 1 }}>🕵️‍♀️ Imposter</div>
+              <p style={{ marginTop: 6, opacity: 0.8, fontSize: 14 }}>
+                {t.imposter__desc}
+              </p>
+            </header>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+              <Link
+                href="/imposter"
+                className="btn btn-accent"
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
+                ▶️ {t.imposter__cta}
+              </Link>
+              <span
+                aria-hidden
+                style={{
+                  alignSelf: 'center',
+                  fontSize: 12,
+                  opacity: 0.7
+                }}
+              >
+                {t.imposter__players_range}
+              </span>
             </div>
+          </article>
 
-            {/* Wortbild-Layer */}
-            <div className={`reveal-layer ${opened ? '' : 'hidden'}`} aria-hidden={!opened}>
-              {
-              revealFor == imposterId ? (<img className="reveal-img" src="/avatar.png" alt="avatar" />)  :
-              word?.imageUrl ? (
-                <img className="reveal-img" src={word.imageUrl} alt={word.term} />
-              ) : (
-                <div className="reveal-img" style={{
-                  background: 'linear-gradient(135deg,#a18cd1 0%,#fbc2eb 100%)'
-                }} />
-              )
-              }
+          {/* Wortduell Game Karte */}
+          <article
+            style={{
+              border: '1px solid rgba(255,255,255,.12)',
+              borderRadius: 14,
+              padding: 16,
+              display: 'grid',
+              alignContent: 'space-between',
+              gap: 12,
+              background: 'linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08))'
+            }}
+          >
+            <header>
+              <div style={{ fontSize: 28, lineHeight: 1 }}>🎯 Wortduell</div>
+              <p style={{ marginTop: 6, opacity: 0.8, fontSize: 14 }}>
+                Zwei Spieler, zwei Geheimwörter – durch clevere Fragen musst du erraten,
+                was dein Gegenüber gezogen hat.
+              </p>
+            </header>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+              <Link
+                href="/wortduell"
+                className="btn btn-accent"
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
+                ▶️ Spiel starten
+              </Link>
+              <span
+                aria-hidden
+                style={{
+                  alignSelf: 'center',
+                  fontSize: 12,
+                  opacity: 0.7
+                }}
+              >
+                2 Spieler
+              </span>
             </div>
+          </article>
 
-            {/* Swipe-Overlay */}
-            <div
-              className="reveal-overlay"
-              style={{ transform: `translateY(-${opened ? 100 : Math.min(100, (overlayY / 260) * 100)}%)` }}
-              onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+          {/* Platzhalter für weitere Mini-Games */}
+          <article
+            style={{
+              border: '1px dashed rgba(255,255,255,.18)',
+              borderRadius: 14,
+              padding: 16,
+              display: 'grid',
+              gap: 12,
+              alignContent: 'space-between',
+              opacity: 0.6
+            }}
+          >
+            <header>
+              <div style={{ fontSize: 22 }}>🔜 {t.soon__title}</div>
+              <p style={{ marginTop: 6, fontSize: 14 }}>
+                {t.soon__desc}
+              </p>
+            </header>
+            <button
+              disabled
+              className="btn"
+              style={{
+                padding: '10px 14px',
+                borderRadius: 10,
+                opacity: 0.6,
+                cursor: 'not-allowed'
+              }}
             >
-              <p className="hint">{t.swipeHint}</p>
-              <div className="arrow" />
-              <div className="cta">{t.revealCard}</div>
-
-              <div className={`reveal-name ${opened ? 'hidden' : ''}`}>
-                {players[revealFor].name || '—'}
-              </div>
-            </div>
-          </div>
-
-          {/* Panel */}
-          <div className="word-panel" aria-live="polite">
-            {!opened ? (
-              <div className="sub">{t.revealCard}</div>
-            ) : revealFor === imposterId ? (
-              <>
-                <div className="check">?</div>
-                <div className="word" style={{ marginTop: 8 }}>{t.youAreImposter}</div>
-                {imageCredit?.author && (
-                  <div className="sub" style={{ opacity:.7, fontSize:12, marginTop:8 }}>
-                    Photo: <a href={imageCredit.author_link} target="_blank" rel="noreferrer">{imageCredit.author}</a> (Unsplash)
-                  </div>
-                )}
-                <div className="panel-actions">
-                  <button className="btn btn-accent" onClick={nextReveal}>{t.next} ▶️</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="check">✓</div>
-                <div className="word">{word?.term}</div>
-                {imageCredit?.author && (
-                  <div className="sub" style={{ opacity:.7, fontSize:12, marginTop:8 }}>
-                    Photo: <a href={imageCredit.author_link} target="_blank" rel="noreferrer">{imageCredit.author}</a> (Unsplash)
-                  </div>
-                )}
-                <div className="panel-actions">
-                  <button className="btn btn-accent" onClick={nextReveal}>{t.next} ▶️</button>
-                </div>
-              </>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Nach Reveal aller Spieler */}
-      {started && revealFor === null && (
-        <div className="card" style={{ marginTop: 16 }}>
-          <div className="h1">🔔 {t.allSet}</div>
-          <div className="sub">{t.discuss}</div>
-          <div className="row">
-            <button className="btn" onClick={resetGame}>↩️ {t.reset}</button>
-            <button className="btn btn-accent" onClick={newRound}>🪄 {t.newWord}</button>
-          </div>
+              {t.soon__btn}
+            </button>
+          </article>
         </div>
-      )}
+
+        {/* Footer Hinweis */}
+        <div
+          style={{
+            marginTop: 18,
+            fontSize: 12,
+            opacity: 0.7,
+            textAlign: 'center'
+          }}
+        >
+          {t.home__tip}
+        </div>
+      </div>
     </main>
   )
 }

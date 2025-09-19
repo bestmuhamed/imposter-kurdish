@@ -23,5 +23,17 @@
     "Discuss and find out who the Imposter is."
   ],
   "revealCard": "Reveal card",
-  "swipeHint": "Swipe your card up to see the word. Make sure no one else can see it."
+  "swipeHint": "Swipe your card up to see the word. Make sure no one else can see it.",
+
+  "home__badge": "MINI GAMES",
+  "home__title": "Party Games Hub",
+  "home__lead_prefix": "Pick a game. Let's start with",
+  "imposter__desc": "Multilingual word game with image cards. One player doesn’t know the word — find the imposter!",
+  "imposter__cta": "Start game",
+  "imposter__players_range": "3–12 players",
+  "soon__title": "Coming soon",
+  "soon__desc": "More mini-games to follow — same UI, lots of fun.",
+  "soon__btn": "In progress",
+  "home__tip": "Tip: Use your browser’s back button to return to the overview.",
+  "duelHint": "Take turns asking yes/no questions until each player guesses their target word."
 }

@@ -23,6 +23,19 @@
     "Bi axivin û Imposter bibînin."
   ],
   "revealCard": "Kartê veke",
-  "swipeHint": "Kartê xwe ber bi jorê bixe da gotinê bibînî. Hewl bide ku kesî din nebîne."
+  "swipeHint": "Kartê xwe ber bi jorê bixe da gotinê bibînî. Hewl bide ku kesî din nebîne.",
+
+
+  "home__badge": "LÎSTIKÊN BIÇÛK",
+  "home__title": "Lîstikên Malbatê",
+  "home__lead_prefix": "Yekê hilbijêre. Bi lîstika peyvên me dest pê bikin",
+  "imposter__desc": "Lîstika peyvên ziman-ziman bi kartên wêne. Yek kes peyvê nizanê — Imposterê bibîne!",
+  "imposter__cta": "Lîstikê dest pê bike",
+  "imposter__players_range": "3–12 lîstikvan",
+  "soon__title": "Nêz de tê",
+  "soon__desc": "Hîn jî gelek lîstikên biçûk tên — UI yek e, kêf pir e.",
+  "soon__btn": "Li ser xebatê",
+  "home__tip": "Şîret: Hûn dikarin bi bişkojka vegerê ji her derê vegerin ser rûpela bingehîn.",
+  "duelHint": "Di navbera xwe de pirsên erê/na bipirsin heya her kes peyva xwe naske."
 
 }
