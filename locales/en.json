@@ -35,5 +35,9 @@
   "soon__desc": "More mini-games to follow — same UI, lots of fun.",
   "soon__btn": "In progress",
   "home__tip": "Tip: Use your browser’s back button to return to the overview.",
-  "duelHint": "Take turns asking yes/no questions until each player guesses their target word."
+  "duelHint": "Take turns asking yes/no questions until each player guesses their target word.",
+  "wortduell__title": "Word Duel",
+  "wortduell__desc": "Two players, two secret words — ask clever questions to figure out what your opponent has drawn.",
+  "wortduell__cta": "Start game",
+  "wortduell__players_range": "2 players"
 }

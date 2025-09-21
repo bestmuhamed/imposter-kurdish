@@ -35,5 +35,9 @@
   "soon__desc": "Weitere Mini-Games folgen – gleiche Oberfläche, viel Spaß.",
   "soon__btn": "In Arbeit",
   "home__tip": "Tipp: Du kannst jederzeit zurück zur Übersicht mit der Browser-Zurück-Taste.",
-  "duelHint": "Stellt euch abwechselnd Ja/Nein-Fragen, bis jede*r das eigene Zielwort erraten hat."
+  "duelHint": "Stellt euch abwechselnd Ja/Nein-Fragen, bis jede*r das eigene Zielwort erraten hat.",
+    "wortduell__title": "Wortduell",
+  "wortduell__desc": "Zwei Spieler, zwei Geheimwörter – durch clevere Fragen musst du erraten, was dein Gegenüber gezogen hat.",
+  "wortduell__cta": "Spiel starten",
+  "wortduell__players_range": "2 Spieler"
 }

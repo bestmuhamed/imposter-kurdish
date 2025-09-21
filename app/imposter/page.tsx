@@ -1,50 +1,59 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getDict, LANG_OPTIONS } from '@/lib/i18n'
-import { useLanguage } from '../_components/LanguageProvider';
+import { useLanguage } from '../_components/LanguageProvider'
 
 type Player = { id: number; name: string }
-type WordPayload = { id: string; word_en: string; term: string; imageUrl?: string | null }
+type WordPayload = {
+    id: string;
+    word_en: string;
+    term: string;
+    terms?: Record<string, string>; // optional dictionary of translations
+    imageUrl?: string | null;
+};
 
+type UnsplashPick = {
+    url?: string
+    author?: string
+    author_link?: string
+    photo_link?: string
+    download_location?: string
+}
 
 const CATEGORIES = [
-    { slug: '', label: 'any' }, { slug: 'food', label: 'Food' }, { slug: 'places', label: 'Places' },
-    { slug: 'objects', label: 'Objects' }, { slug: 'animals', label: 'Animals' }, { slug: 'body', label: 'Body' },
-    { slug: 'colors', label: 'Colors' }, { slug: 'professions', label: 'Professions' }, { slug: 'time', label: 'Time' }
+    { slug: '', label: 'any' },
+    { slug: 'food', label: 'Food' },
+    { slug: 'places', label: 'Places' },
+    { slug: 'objects', label: 'Objects' },
+    { slug: 'animals', label: 'Animals' },
+    { slug: 'body', label: 'Body' },
+    { slug: 'colors', label: 'Colors' },
+    { slug: 'professions', label: 'Professions' },
+    { slug: 'time', label: 'Time' }
 ]
 
 // ---- Unsplash Helper ----
-async function getUnsplash(query: string) {
-    console.log('[Unsplash] Suche nach:', query)
+async function getUnsplash(query: string): Promise<UnsplashPick | undefined> {
     try {
         const r = await fetch('/api/unsplash?q=' + encodeURIComponent(query), { cache: 'no-store' })
-        if (!r.ok) {
-            console.error('[Unsplash] Fehlerstatus', r.status)
-            return undefined
-        }
+        if (!r.ok) return undefined
         const { photos } = await r.json()
-        console.log('[Unsplash] Ergebnis:', photos)
         return photos?.[0]
-    } catch (e) {
-        console.error('[Unsplash] Exception:', e)
-        return undefined
-    }
+    } catch { return undefined }
 }
+
 
 export default function Page() {
     const { lang } = useLanguage()
     const t = getDict(lang)
     const [count, setCount] = useState(5)
-    const [players, setPlayers] = useState<Player[]>(
-        Array.from({ length: 5 }, (_, i) => ({ id: i, name: '' }))
-    )
+    const [players, setPlayers] = useState<Player[]>(Array.from({ length: 5 }, (_, i) => ({ id: i, name: '' })))
     const [category, setCategory] = useState('')
     const [word, setWord] = useState<WordPayload | null>(null)
     const [imposterId, setImposterId] = useState<number | null>(null)
     const [started, setStarted] = useState(false)
     const [revealFor, setRevealFor] = useState<number | null>(null)
     const [isLoading, setIsLoading] = useState(false)
-
     const [imageCredit, setImageCredit] = useState<{ author?: string; author_link?: string; source_link?: string } | null>(null)
 
     // Swipe state
@@ -57,121 +66,157 @@ export default function Page() {
         setPlayers(p => Array.from({ length: count }, (_, i) => p[i] ?? { id: i, name: '' }))
     }, [count])
 
-    const allNamesFilled = useMemo(
-        () => players.slice(0, count).every(p => p.name.trim().length > 0), [players, count]
-    )
+    const allNamesFilled = useMemo(() => players.slice(0, count).every(p => p.name.trim().length > 0), [players, count])
 
     async function fetchWord(params: { lang: string; category?: string }) {
-        const q = new URLSearchParams({ lang: params.lang })
-        if (params.category) q.set('category', params.category)
-        console.log('[WordAPI] Abrufen mit Params:', q.toString())
-        const res = await fetch('/api/word?' + q.toString(), { cache: 'no-store' })
-        const data = await res.json()
-        if (!res.ok) {
-            console.error('[WordAPI] Fehler:', data)
-            throw new Error(data?.error || 'fetch error')
-        }
-        console.log('[WordAPI] Ergebnis:', data)
-        return { id: data.id, word_en: data.word_en, term: data.term, imageUrl: data.imageUrl } as WordPayload
+        const q = new URLSearchParams();
+        q.set('lang', params.lang);
+        if (params.category) q.set('category', params.category);
+
+        const res = await fetch('/api/word?' + q.toString(), { cache: 'no-store' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'fetch error');
+
+        return {
+            id: data.id,
+            word_en: data.word_en,
+            term: data.term,
+            terms: data.terms,
+            imageUrl: data.imageUrl,
+        } as WordPayload;
+    }
+    function getTermForLanguage(word: WordPayload | null, lang: string): string {
+        if (!word) return '';
+        // Prefer the multi-lang dictionary if available
+        if (word.terms && word.terms[lang]) return word.terms[lang];
+        // Fall back to the API-provided term
+        return word.term ?? word.word_en;
     }
 
+
     async function startGame() {
-        if (!allNamesFilled) {
-            console.warn('[Game] Nicht alle Namen ausgefüllt')
-            return
-        }
+        if (!allNamesFilled) return
         try {
             setIsLoading(true)
-            console.log('[Game] Starte Spiel…')
             const w = await fetchWord({ lang, category: category || undefined })
-            console.log('[Game] Kein Bild in DB, hole von Unsplash')
             const u = await getUnsplash(w.word_en)
             if (u?.url) {
                 w.imageUrl = u.url
-                setImageCredit({ author: u.author, author_link: u.author_link, source_link: u.source_link })
-                console.log('[Game] Unsplash Bild gesetzt:', u.url)
+                setImageCredit({
+                    author: u.author,
+                    author_link: u.author_link,    // Profil
+                    source_link: u.photo_link      // Foto-Seite
+                })
+                // DOWNLOAD TRIGGER (optional, aber für Approval hilfreich)
+                if (u.download_location) {
+                    fetch('/api/unsplash/download?url=' + encodeURIComponent(u.download_location))
+                        .catch(() => { }) // fire-and-forget
+                }
             } else {
                 setImageCredit(null)
-                console.warn('[Game] Kein Unsplash Bild gefunden')
             }
+
             setWord(w)
             setImposterId(Math.floor(Math.random() * count))
             setStarted(true)
             setRevealFor(0)
             resetOverlay()
-        } finally { setIsLoading(false) }
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     function nextReveal() {
         if (revealFor == null) return
         const n = revealFor + 1
-        if (n < count) { setRevealFor(n); resetOverlay() } else { setRevealFor(null) }
+        if (n < count) {
+            setRevealFor(n)
+            resetOverlay()
+        } else {
+            setRevealFor(null)
+        }
     }
     function resetGame() {
-        console.log('[Game] Reset')
         setStarted(false); setRevealFor(null); setImposterId(null); setWord(null); resetOverlay(); setImageCredit(null)
     }
     function newRound() {
-        console.log('[Game] Neue Runde')
         setStarted(false); setRevealFor(null); setImposterId(null); setWord(null); resetOverlay(); setImageCredit(null); startGame()
     }
-
     function resetOverlay() { setOverlayY(0); setOpened(false); startY.current = null }
 
     // pointer handlers
     const onDown = (e: React.PointerEvent<HTMLDivElement>) => { e.currentTarget.setPointerCapture(e.pointerId); startY.current = e.clientY }
-    const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
-        if (startY.current == null) return
-        const dy = startY.current - e.clientY
-        setOverlayY(Math.max(0, Math.min(dy, MAX)))
-    }
+    const onMove = (e: React.PointerEvent<HTMLDivElement>) => { if (startY.current == null) return; const dy = startY.current - e.clientY; setOverlayY(Math.max(0, Math.min(dy, MAX))) }
     const onUp = async () => {
         const openedNow = overlayY >= THRESH
         setOpened(openedNow)
-        console.log('[Swipe] Released. openedNow=', openedNow, 'overlayY=', overlayY)
         if (!openedNow) setOverlayY(0)
         startY.current = null
 
         if (openedNow && word && !word.imageUrl) {
-            console.log('[Swipe] Wort geöffnet, aber kein Bild. Hole Unsplash nach.')
             const u = await getUnsplash(word.term)
             if (u?.url) {
                 setWord(prev => prev ? { ...prev, imageUrl: u.url } : prev)
-                setImageCredit({ author: u.author, author_link: u.author_link, source_link: u.source_link })
-                console.log('[Swipe] Unsplash Bild nachgeladen:', u.url)
-            } else {
-                console.warn('[Swipe] Auch nachträglich kein Unsplash Bild gefunden')
+                setImageCredit({ author: u.author, author_link: u.author_link })
             }
         }
     }
 
     return (
-        <main>
-
+        <main
+            style={{
+                minHeight: '100dvh',
+                width: '100%',
+                padding: 24,
+                background: [
+                    'radial-gradient(1200px 600px at 20% -10%, rgba(255,255,255,.08), transparent)',
+                    'radial-gradient(1000px 500px at 120% 10%, rgba(255,255,255,.05), transparent)',
+                    'radial-gradient(800px 400px at -10% 30%, rgba(99,102,241,.10), transparent)', // indigo
+                    'radial-gradient(900px 450px at 110% 70%, rgba(236,72,153,.08), transparent)' // pink
+                ].join(',')
+            }}
+        >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <h1 style={{ margin: 0, fontSize: 22 }}> Imposter</h1>
+                <h1
+                    style={{
+                        margin: 0,
+                        fontSize: 28,
+                        background: 'linear-gradient(90deg, #a78bfa, #f472b6)',
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        color: 'transparent'
+                    }}
+                >
+                    Imposter
+                </h1>
             </div>
+
             {/* Setup */}
             {!started && (
                 <div className="grid" style={{ gridTemplateColumns: '1fr', gap: 16 }}>
-                    <div className="card">
-                        <div className="row">
+                    <div
+                        className="card"
+                        style={{
+                            border: '1px solid rgba(255,255,255,.12)',
+                            borderRadius: 16,
+                            background: 'linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05))',
+                            boxShadow: '0 10px 30px rgba(0,0,0,.15)',
+                            backdropFilter: 'blur(6px)',
+                            padding: 16
+                        }}
+                    >
+                        <div className="row" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                             <div style={{ minWidth: 220 }}>
                                 <label htmlFor="playerCount">{t.players}</label>
                                 <div
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: 8,
-                                        border: '1px solid var(--border, #ddd)', borderRadius: 12, padding: 6
+                                        border: '1px solid rgba(255,255,255,.18)', borderRadius: 12, padding: 6,
+                                        background: 'linear-gradient(180deg, rgba(99,102,241,.12), rgba(99,102,241,.04))'
                                     }}
                                 >
-                                    <button
-                                        type="button"
-                                        aria-label="decrease players"
-                                        onClick={() => setCount(c => Math.max(3, c - 1))}
-                                        style={{ minWidth: 44, minHeight: 44, borderRadius: 10 }}
-                                    >
-                                        −
-                                    </button>
+                                    <button type="button" aria-label="decrease players" onClick={() => setCount(c => Math.max(3, c - 1))}
+                                        style={{ minWidth: 44, minHeight: 44, borderRadius: 10, background: 'rgba(255,255,255,.08)', color: '#fff' }}>−</button>
 
                                     <input
                                         id="playerCount"
@@ -187,48 +232,75 @@ export default function Page() {
                                             setCount(clamped)
                                         }}
                                         onWheel={e => (e.currentTarget as HTMLInputElement).blur()}
-                                        style={{
-                                            textAlign: 'center', flex: 1, minWidth: 64,
-                                            fontSize: 18, padding: '10px 8px', border: 'none', outline: 'none'
-                                        }}
+                                        style={{ textAlign: 'center', flex: 1, minWidth: 64, fontSize: 18, padding: '10px 8px', border: 'none', outline: 'none', background: 'transparent', color: '#fff' }}
                                     />
 
-                                    <button
-                                        type="button"
-                                        aria-label="increase players"
-                                        onClick={() => setCount(c => Math.min(12, c + 1))}
-                                        style={{ minWidth: 44, minHeight: 44, borderRadius: 10 }}
-                                    >
-                                        +
-                                    </button>
+                                    <button type="button" aria-label="increase players" onClick={() => setCount(c => Math.min(12, c + 1))}
+                                        style={{ minWidth: 44, minHeight: 44, borderRadius: 10, background: 'rgba(255,255,255,.08)', color: '#fff' }}>+</button>
                                 </div>
                             </div>
 
                             <div style={{ flex: 1, minWidth: 220 }}>
                                 <label>{t.category}</label>
-                                <select value={category} onChange={e => setCategory(e.target.value)}>
-                                    {[{ slug: '', label: t.any }, ...CATEGORIES.filter(c => c.slug)].map(c =>
-                                        <option key={c.slug || 'any'} value={c.slug}>{c.label}</option>)}
+                                <select value={category} onChange={e => setCategory(e.target.value)}
+                                    style={{
+                                        width: '100%', padding: '10px 12px', borderRadius: 12,
+                                        border: '1px solid rgba(255,255,255,.18)', color: '#fff', background: 'linear-gradient(180deg, rgba(14,165,233,.14), rgba(14,165,233,.05))'
+                                    }}
+                                >
+                                    {[{ slug: '', label: t.any }, ...CATEGORIES.filter(c => c.slug)].map(c => (
+                                        <option key={c.slug || 'any'} value={c.slug} style={{ color: '#0b1020' }}>
+                                            {c.label}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
                     </div>
 
-                    <div className="card">
+                    <div
+                        className="card"
+                        style={{
+                            border: '1px solid rgba(255,255,255,.12)',
+                            borderRadius: 16,
+                            background: 'linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05))',
+                            boxShadow: '0 10px 30px rgba(0,0,0,.15)',
+                            backdropFilter: 'blur(6px)',
+                            padding: 16
+                        }}
+                    >
                         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                             {players.slice(0, count).map((p, i) => (
                                 <div key={p.id}>
                                     <label>{t.playerName.replace('{{i}}', String(i + 1))}</label>
-                                    <input value={p.name}
+                                    <input
+                                        value={p.name}
                                         onChange={e => setPlayers(arr => arr.map(x => x.id === p.id ? { ...x, name: e.target.value } : x))}
-                                        placeholder={t.playerName.replace('{{i}}', String(i + 1))} />
+                                        placeholder={t.playerName.replace('{{i}}', String(i + 1))}
+                                        style={{
+                                            width: '100%', padding: '10px 12px', borderRadius: 12,
+                                            border: '1px solid rgba(255,255,255,.18)', color: '#fff', background: 'rgba(255,255,255,.06)'
+                                        }}
+                                    />
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     <div className="row">
-                        <button className="btn btn-accent" onClick={startGame} disabled={!allNamesFilled || isLoading}>
+                        <button
+                            className="btn btn-accent"
+                            onClick={startGame}
+                            disabled={!allNamesFilled || isLoading}
+                            style={{
+                                padding: '12px 16px',
+                                borderRadius: 12,
+                                fontWeight: 700,
+                                background: 'linear-gradient(90deg, #818cf8, #f472b6)',
+                                color: '#fff',
+                                boxShadow: '0 10px 25px rgba(129,140,248,.35)'
+                            }}
+                        >
                             {isLoading ? '…' : `▶️ ${t.start}`}
                         </button>
                     </div>
@@ -238,84 +310,157 @@ export default function Page() {
             {/* Reveal */}
             {started && revealFor !== null && (
                 <>
-                    <div className="reveal-card">
+
+                    <div
+                        className="reveal-card"
+                        style={{
+                            borderRadius: 16,
+                            overflow: 'hidden',
+                            height: 320,
+                            border: '1px solid rgba(255,255,255,.12)',
+                            background: 'linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03))',
+                            padding:16,
+                        }}
+                    >
                         {/* Avatar-Layer */}
                         <div className={`reveal-layer ${opened ? 'hidden' : ''}`} aria-hidden={opened}>
-                            <img className="reveal-img" src="/avatar.png" alt="avatar" />
+                            <img className="reveal-img" src="/avatar.png" alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
 
                         {/* Wortbild-Layer */}
                         <div className={`reveal-layer ${opened ? '' : 'hidden'}`} aria-hidden={!opened}>
-                            {
-                                revealFor == imposterId ? (<img className="reveal-img" src="/avatar.png" alt="avatar" />) :
-                                    word?.imageUrl ? (
-                                        <img
-                                            className="reveal-img"
-                                            src={word.imageUrl}
-                                            alt={word.term}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'contain',          // ← zeigt das ganze Bild
-                                                objectPosition: 'center',
-                                                backgroundColor: '#0b0b0b'     // ← „Letterbox“ für freie Ränder
-                                            }}
-                                            loading="eager"
-                                            decoding="async"
-                                        />
-
-                                    ) : (
-                                        <div className="reveal-img" style={{
-                                            background: 'linear-gradient(135deg,#a18cd1 0%,#fbc2eb 100%)'
-                                        }} />
-                                    )
-                            }
+                            {revealFor == imposterId ? (
+                                <img className="reveal-img" src="/avatar.png" alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : word?.imageUrl ? (
+                                <img
+                                    className="reveal-img"
+                                    src={word.imageUrl}
+                                    alt={word.term}
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', backgroundColor: '#0b0b0b' }}
+                                    loading="eager"
+                                    decoding="async"
+                                />
+                            ) : (
+                                <div className="reveal-img" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#a18cd1 0%,#fbc2eb 100%)' }} />
+                            )}
                         </div>
 
                         {/* Swipe-Overlay */}
                         <div
                             className="reveal-overlay"
-                            style={{ transform: `translateY(-${opened ? 100 : Math.min(100, (overlayY / 260) * 100)}%)` }}
+                            style={{
+                                position: 'absolute', inset: 0,
+                                display: 'grid', placeItems: 'center',
+                                background: 'linear-gradient(180deg, rgba(12,10,24,.85), rgba(12,10,24,.55))',
+                                transform: `translateY(-${opened ? 100 : Math.min(100, (overlayY / 260) * 100)}%)`,
+                                transition: 'transform .2s ease-out',
+                                color: '#fff'
+                            }}
                             onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
                         >
-                            <p className="hint">{t.swipeHint}</p>
-                            <div className="arrow" />
-                            <div className="cta">{t.revealCard}</div>
+                            <p className="hint" style={{ opacity: .9 }}>{t.swipeHint}</p>
 
-                            <div className={`reveal-name ${opened ? 'hidden' : ''}`}>
+                            <div
+                                className="cta"
+                                style={{
+                                    marginTop: 40,
+                                    padding: '8px 12px',
+                                    borderRadius: 10,
+                                    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+                                    color: '#0b1020',
+                                    fontWeight: 700
+                                }}
+                            >
+                                {t.revealCard}
+                            </div>
+
+                            <div>
+                                {/* Pfeil-Icon nach oben */}
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="28"
+                                    height="28"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="#22d3ee"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    style={{ display: 'block', margin: '0 auto' }}
+                                >
+                                    <path d="M12 19V5" />
+                                    <path d="M5 12l7-7 7 7" />
+                                </svg>
+                            </div>
+
+                            <div
+                                className={`reveal-name ${opened ? 'hidden' : ''}`}
+                                style={{ marginTop: 10, opacity: .85 }}
+                            >
                                 {players[revealFor].name || '—'}
                             </div>
                         </div>
+
                     </div>
 
                     {/* Panel */}
-                    <div className="word-panel" aria-live="polite">
+                    <div className="word-panel" aria-live="polite" style={{
+                        marginTop: 12,
+                        border: '1px solid rgba(255,255,255,.12)',
+                        borderRadius: 16,
+                        padding: 16,
+                        background: 'linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03))'
+                    }}>
                         {!opened ? (
-                            <div className="sub">{t.revealCard}</div>
+                            <div className="sub" style={{ opacity: .9 }}>{t.revealCard}</div>
                         ) : revealFor === imposterId ? (
                             <>
-                                <div className="check">?</div>
-                                <div className="word" style={{ marginTop: 8 }}>{t.youAreImposter}</div>
-                                {imageCredit?.author && (
-                                    <div className="sub" style={{ opacity: .7, fontSize: 12, marginTop: 8 }}>
-                                        Photo: <a href={imageCredit.author_link} target="_blank" rel="noreferrer">{imageCredit.author}</a> (Unsplash)
-                                    </div>
-                                )}
-                                <div className="panel-actions">
-                                    <button className="btn btn-accent" onClick={nextReveal}>{t.next} ▶️</button>
+                                <div className="check" style={{
+                                    width: 44, height: 44, borderRadius: 12, display: 'grid', placeItems: 'center',
+                                    background: 'linear-gradient(90deg, #f472b6, #a78bfa)', color: '#fff', fontWeight: 800
+                                }}>?</div>
+                                <div className="word" style={{ marginTop: 8, fontSize: 18, fontWeight: 700 }}>{t.youAreImposter}</div>
+
+                                <div className="panel-actions" style={{ marginTop: 10 }}>
+                                    <button className="btn btn-accent" onClick={nextReveal} style={{
+                                        padding: '10px 14px', borderRadius: 12, fontWeight: 700,
+                                        background: 'linear-gradient(90deg, #818cf8, #f472b6)', color: '#fff'
+                                    }}>{t.next} ▶️</button>
                                 </div>
                             </>
                         ) : (
                             <>
-                                <div className="check">✓</div>
-                                <div className="word">{word?.term}</div>
-                                {imageCredit?.author && (
-                                    <div className="sub" style={{ opacity: .7, fontSize: 12, marginTop: 8 }}>
-                                        Photo: <a href={imageCredit.author_link} target="_blank" rel="noreferrer">{imageCredit.author}</a> (Unsplash)
+                                <div className="check" style={{
+                                    width: 44, height: 44, borderRadius: 12, display: 'grid', placeItems: 'center',
+                                    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)', color: '#0b1020', fontWeight: 800
+                                }}>✓</div>
+                                <div className="word">
+                                    {getTermForLanguage(word, lang)}
+                                </div>
+
+                                {imageCredit?.author && imageCredit?.author_link && imageCredit?.source_link && (
+                                    <div className="sub" style={{ opacity: .8, fontSize: 12, marginTop: 8 }}>
+                                        Photo by{' '}
+                                        <a
+                                            href={`${imageCredit.author_link}?utm_source=imposter_kurdish&utm_medium=referral`}
+                                            target="_blank" rel="noreferrer"
+                                        >
+                                            {imageCredit.author}
+                                        </a>{' '}
+                                        on{' '}
+                                        <a
+                                            href={`${imageCredit.source_link}?utm_source=imposter_kurdish&utm_medium=referral`}
+                                            target="_blank" rel="noreferrer"
+                                        >
+                                            Unsplash
+                                        </a>
                                     </div>
                                 )}
-                                <div className="panel-actions">
-                                    <button className="btn btn-accent" onClick={nextReveal}>{t.next} ▶️</button>
+                                <div className="panel-actions" style={{ marginTop: 10 }}>
+                                    <button className="btn btn-accent" onClick={nextReveal} style={{
+                                        padding: '10px 14px', borderRadius: 12, fontWeight: 700,
+                                        background: 'linear-gradient(90deg, #22d3ee, #3b82f6)', color: '#0b1020'
+                                    }}>{t.next} ▶️</button>
                                 </div>
                             </>
                         )}
@@ -325,12 +470,32 @@ export default function Page() {
 
             {/* Nach Reveal aller Spieler */}
             {started && revealFor === null && (
-                <div className="card" style={{ marginTop: 16 }}>
-                    <div className="h1">🔔 {t.allSet}</div>
-                    <div className="sub">{t.discuss}</div>
-                    <div className="row">
-                        <button className="btn" onClick={resetGame}>↩️ {t.reset}</button>
-                        <button className="btn btn-accent" onClick={newRound}>🪄 {t.newWord}</button>
+                <div className="card" style={{
+                    marginTop: 16,
+                    border: '1px solid rgba(255,255,255,.12)',
+                    borderRadius: 16,
+                    padding: 16,
+                    background: 'linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05))',
+                    boxShadow: '0 10px 30px rgba(0,0,0,.15)',
+                    backdropFilter: 'blur(6px)'
+                }}>
+                    <div className="h1" style={{
+                        background: 'linear-gradient(90deg, #a78bfa, #f472b6)',
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        color: 'transparent',
+                        fontWeight: 800
+                    }}>🔔 {t.allSet}</div>
+                    <div className="sub" style={{ opacity: .85 }}>{t.discuss}</div>
+                    <div className="row" style={{ marginTop: 10, display: 'flex', gap: 10 }}>
+                        <button className="btn" onClick={resetGame} style={{
+                            padding: '10px 14px', borderRadius: 12, fontWeight: 700,
+                            background: 'rgba(255,255,255,.08)', color: '#fff', border: '1px solid rgba(255,255,255,.12)'
+                        }}>↩️ {t.reset}</button>
+                        <button className="btn btn-accent" onClick={newRound} style={{
+                            padding: '10px 14px', borderRadius: 12, fontWeight: 700,
+                            background: 'linear-gradient(90deg, #818cf8, #f472b6)', color: '#fff'
+                        }}>🪄 {t.newWord}</button>
                     </div>
                 </div>
             )}

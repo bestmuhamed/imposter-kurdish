@@ -18,7 +18,9 @@ main { max-width: 900px; margin: 0 auto; padding: 28px 20px 64px; }
 
 .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .grid { display: grid; gap: 12px; }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+.card { 
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; 
+}
 .hr { height: 1px; background: var(--border); margin: 20px 0; }
 
 label { font-size: 14px; color: var(--muted); display: block; margin-bottom: 6px; }
@@ -48,6 +50,7 @@ button:disabled { opacity: .6; cursor: not-allowed; }
   border-radius: 18px;
   border: 2px solid rgba(255,255,255,.85);
   overflow: hidden;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; 
 }
 
 /* Ebenen + Bilder füllen die Karte immer */

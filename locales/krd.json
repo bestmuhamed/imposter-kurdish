@@ -36,6 +36,10 @@
   "soon__desc": "Hîn jî gelek lîstikên biçûk tên — UI yek e, kêf pir e.",
   "soon__btn": "Li ser xebatê",
   "home__tip": "Şîret: Hûn dikarin bi bişkojka vegerê ji her derê vegerin ser rûpela bingehîn.",
-  "duelHint": "Di navbera xwe de pirsên erê/na bipirsin heya her kes peyva xwe naske."
+  "duelHint": "Di navbera xwe de pirsên erê/na bipirsin heya her kes peyva xwe naske.",
+  "wortduell__title": "Şerê Peyvan",
+  "wortduell__desc": "Du lîstikvan, du peyvên veşartî — bi pirsên zîrek re divê tu fêm bikî ka hevalê te çi gotin hilbijartiye.",
+  "wortduell__cta": "Dest pê bike",
+  "wortduell__players_range": "2 lîstikvan"
 
 }

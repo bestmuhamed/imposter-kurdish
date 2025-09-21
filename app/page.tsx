@@ -1,4 +1,5 @@
 'use client'
+
 import Link from 'next/link'
 import { useLanguage } from './_components/LanguageProvider'
 import { getDict } from '@/lib/i18n'
@@ -14,8 +15,14 @@ export default function Page() {
         display: 'grid',
         placeItems: 'center',
         padding: 24,
-        background:
-          'radial-gradient(1200px 600px at 20% -10%, rgba(255,255,255,.08), transparent), radial-gradient(1000px 500px at 120% 10%, rgba(255,255,255,.05), transparent)'
+        // Minimal colorful background (keine zusätzlichen Libs)
+        background: [
+          'radial-gradient(1200px 600px at 20% -10%, rgba(255,255,255,.08), transparent)',
+          'radial-gradient(1000px 500px at 120% 10%, rgba(255,255,255,.05), transparent)',
+          // dezente Farbakzente
+          'radial-gradient(800px 400px at -10% 30%, rgba(99,102,241,.10), transparent)', // indigo
+          'radial-gradient(900px 450px at 110% 70%, rgba(236,72,153,.08), transparent)' // pink
+        ].join(',')
       }}
     >
       <div
@@ -26,15 +33,23 @@ export default function Page() {
           padding: 24,
           borderRadius: 16,
           boxShadow: '0 10px 30px rgba(0,0,0,.15)',
-          background: 'linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04))',
-          backdropFilter: 'blur(6px)'
+          // leicht getönter Glas-Look
+          background: 'linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05))',
+          backdropFilter: 'blur(6px)',
+          border: '1px solid rgba(255,255,255,.12)'
         }}
       >
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 14, letterSpacing: 1.4, opacity: 0.75 }}>{t.home__badge}</div>
-          <h1 style={{ fontSize: 34, margin: '8px 0 6px' }}>{t.home__title}</h1>
-          <p style={{ opacity: 0.8, fontSize: 16 }}>
+          <div style={{ fontSize: 14, letterSpacing: 1.4, opacity: 0.8 }}>{t.home__badge}</div>
+          <h1 style={{
+            fontSize: 34, margin: '8px 0 6px',
+            background: 'linear-gradient(90deg, #a78bfa, #f472b6)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent'
+          }}>{t.home__title}</h1>
+          <p style={{ opacity: 0.85, fontSize: 16 }}>
             {t.home__lead_prefix} <em>Imposter</em>.
           </p>
         </div>
@@ -52,110 +67,172 @@ export default function Page() {
           {/* Imposter Game Karte */}
           <article
             style={{
-              border: '1px solid rgba(255,255,255,.12)',
+              position: 'relative',
+              overflow: 'hidden',
+              border: '1px solid rgba(167,139,250,.35)', // indigo-300 Akzent
               borderRadius: 14,
               padding: 16,
               display: 'grid',
               alignContent: 'space-between',
               gap: 12,
-              background: 'linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08))'
+              background: 'transparent',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,.06)'
             }}
           >
-            <header>
-              <div style={{ fontSize: 28, lineHeight: 1 }}>🕵️‍♀️ Imposter</div>
-              <p style={{ marginTop: 6, opacity: 0.8, fontSize: 14 }}>
-                {t.imposter__desc}
-              </p>
-            </header>
+            {/* BG image + gradient overlay */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: [
+                  'linear-gradient(180deg, rgba(12,10,24,.55), rgba(12,10,24,.65))',
+                  'url(/imposter.png)'
+                ].join(','),
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'saturate(1.1) brightness(0.9)',
+                transform: 'scale(1.02)'
+              }}
+            />
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-              <Link
-                href="/imposter"
-                className="btn btn-accent"
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8
-                }}
-              >
-                ▶️ {t.imposter__cta}
-              </Link>
-              <span
-                aria-hidden
-                style={{
-                  alignSelf: 'center',
-                  fontSize: 12,
-                  opacity: 0.7
-                }}
-              >
-                {t.imposter__players_range}
-              </span>
+            {/* subtle top color wash */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'radial-gradient(600px 280px at 10% -10%, rgba(129,140,248,.25), transparent), radial-gradient(500px 240px at 110% 10%, rgba(244,114,182,.18), transparent)'
+              }}
+            />
+
+            {/* content */}
+            <div style={{ position: 'relative' }}>
+              <header>
+                <div style={{ fontSize: 28, lineHeight: 1 }}>🕵️‍♀️ Imposter</div>
+                <p style={{ marginTop: 6, opacity: 0.9, fontSize: 14 }}>
+                  {t.imposter__desc}
+                </p>
+              </header>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <Link
+                  href="/imposter"
+                  className="btn btn-accent"
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'linear-gradient(90deg, #818cf8, #f472b6)',
+                    color: '#fff',
+                    boxShadow: '0 6px 20px rgba(129,140,248,.35)'
+                  }}
+                >
+                  ▶️ {t.imposter__cta}
+                </Link>
+                <span aria-hidden style={{ alignSelf: 'center', fontSize: 12, opacity: 0.85 }}>
+                  {t.imposter__players_range}
+                </span>
+              </div>
             </div>
           </article>
 
           {/* Wortduell Game Karte */}
           <article
-            style={{
-              border: '1px solid rgba(255,255,255,.12)',
-              borderRadius: 14,
-              padding: 16,
-              display: 'grid',
-              alignContent: 'space-between',
-              gap: 12,
-              background: 'linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08))'
-            }}
-          >
-            <header>
-              <div style={{ fontSize: 28, lineHeight: 1 }}>🎯 Wortduell</div>
-              <p style={{ marginTop: 6, opacity: 0.8, fontSize: 14 }}>
-                Zwei Spieler, zwei Geheimwörter – durch clevere Fragen musst du erraten,
-                was dein Gegenüber gezogen hat.
-              </p>
-            </header>
+  style={{
+    position: 'relative',
+    overflow: 'hidden',
+    border: '1px solid rgba(56,189,248,.35)', // cyan-300 Akzent
+    borderRadius: 14,
+    padding: 16,
+    display: 'grid',
+    alignContent: 'space-between',
+    gap: 12,
+    background: 'transparent',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,.06)'
+  }}
+>
+  {/* BG image + gradient overlay */}
+  <div
+    aria-hidden
+    style={{
+      position: 'absolute',
+      inset: 0,
+      backgroundImage: [
+        'linear-gradient(180deg, rgba(5,12,20,.55), rgba(5,12,20,.65))',
+        'url(/wortduell.png)'
+      ].join(','),
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      filter: 'saturate(1.1) brightness(0.92)',
+      transform: 'scale(1.02)'
+    }}
+  />
+  {/* subtle color wash */}
+  <div
+    aria-hidden
+    style={{
+      position: 'absolute',
+      inset: 0,
+      background:
+        'radial-gradient(600px 280px at 90% -10%, rgba(56,189,248,.22), transparent), radial-gradient(500px 240px at -10% 10%, rgba(59,130,246,.18), transparent)'
+    }}
+  />
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-              <Link
-                href="/wortduell"
-                className="btn btn-accent"
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8
-                }}
-              >
-                ▶️ Spiel starten
-              </Link>
-              <span
-                aria-hidden
-                style={{
-                  alignSelf: 'center',
-                  fontSize: 12,
-                  opacity: 0.7
-                }}
-              >
-                2 Spieler
-              </span>
-            </div>
-          </article>
+  {/* content */}
+  <div style={{ position: 'relative' }}>
+    <header>
+      <div style={{ fontSize: 28, lineHeight: 1 }}>🎯 {t.wortduell__title}</div>
+      <p style={{ marginTop: 6, opacity: 0.9, fontSize: 14 }}>
+        {t.wortduell__desc}
+      </p>
+    </header>
+
+    <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+      <Link
+        href="/wortduell"
+        className="btn btn-accent"
+        style={{
+          padding: '10px 14px',
+          borderRadius: 10,
+          textDecoration: 'none',
+          fontWeight: 600,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+          color: '#0b1020',
+          boxShadow: '0 6px 20px rgba(59,130,246,.35)'
+        }}
+      >
+        ▶️ {t.wortduell__cta}
+      </Link>
+      <span
+        aria-hidden
+        style={{ alignSelf: 'center', fontSize: 12, opacity: 0.85 }}
+      >
+        {t.wortduell__players_range}
+      </span>
+    </div>
+  </div>
+</article>
+
 
           {/* Platzhalter für weitere Mini-Games */}
           <article
             style={{
-              border: '1px dashed rgba(255,255,255,.18)',
+              border: '1px dashed rgba(99,102,241,.45)', // indigo gestrichelt
               borderRadius: 14,
               padding: 16,
               display: 'grid',
               gap: 12,
               alignContent: 'space-between',
-              opacity: 0.6
+              background: 'linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02))',
+              opacity: 0.9
             }}
           >
             <header>
@@ -170,8 +247,10 @@ export default function Page() {
               style={{
                 padding: '10px 14px',
                 borderRadius: 10,
-                opacity: 0.6,
-                cursor: 'not-allowed'
+                opacity: 0.75,
+                cursor: 'not-allowed',
+                background: 'linear-gradient(90deg, rgba(99,102,241,.25), rgba(236,72,153,.25))',
+                color: '#fff'
               }}
             >
               {t.soon__btn}
@@ -184,7 +263,7 @@ export default function Page() {
           style={{
             marginTop: 18,
             fontSize: 12,
-            opacity: 0.7,
+            opacity: 0.75,
             textAlign: 'center'
           }}
         >
