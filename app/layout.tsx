@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               }}
             >
               <img
-                src="/logo.png"
+                src="/Logo.png"
                 alt="HevalPlay Logo"
                 style={{ width: 28, height: 28, objectFit: 'contain' }}
               />
