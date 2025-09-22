@@ -1,3 +1,4 @@
+// app/page.tsx
 'use client'
 
 import Link from 'next/link'
@@ -15,13 +16,11 @@ export default function Page() {
         display: 'grid',
         placeItems: 'center',
         padding: 24,
-        // Minimal colorful background (keine zusätzlichen Libs)
         background: [
           'radial-gradient(1200px 600px at 20% -10%, rgba(255,255,255,.08), transparent)',
           'radial-gradient(1000px 500px at 120% 10%, rgba(255,255,255,.05), transparent)',
-          // dezente Farbakzente
-          'radial-gradient(800px 400px at -10% 30%, rgba(99,102,241,.10), transparent)', // indigo
-          'radial-gradient(900px 450px at 110% 70%, rgba(236,72,153,.08), transparent)' // pink
+          'radial-gradient(800px 400px at -10% 30%, rgba(99,102,241,.10), transparent)',
+          'radial-gradient(900px 450px at 110% 70%, rgba(236,72,153,.08), transparent)'
         ].join(',')
       }}
     >
@@ -33,7 +32,6 @@ export default function Page() {
           padding: 24,
           borderRadius: 16,
           boxShadow: '0 10px 30px rgba(0,0,0,.15)',
-          // leicht getönter Glas-Look
           background: 'linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05))',
           backdropFilter: 'blur(6px)',
           border: '1px solid rgba(255,255,255,.12)'
@@ -69,7 +67,7 @@ export default function Page() {
             style={{
               position: 'relative',
               overflow: 'hidden',
-              border: '1px solid rgba(167,139,250,.35)', // indigo-300 Akzent
+              border: '1px solid rgba(167,139,250,.35)',
               borderRadius: 14,
               padding: 16,
               display: 'grid',
@@ -79,7 +77,6 @@ export default function Page() {
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,.06)'
             }}
           >
-            {/* BG image + gradient overlay */}
             <div
               aria-hidden
               style={{
@@ -95,8 +92,6 @@ export default function Page() {
                 transform: 'scale(1.02)'
               }}
             />
-
-            {/* subtle top color wash */}
             <div
               aria-hidden
               style={{
@@ -105,8 +100,6 @@ export default function Page() {
                 background: 'radial-gradient(600px 280px at 10% -10%, rgba(129,140,248,.25), transparent), radial-gradient(500px 240px at 110% 10%, rgba(244,114,182,.18), transparent)'
               }}
             />
-
-            {/* content */}
             <div style={{ position: 'relative' }}>
               <header>
                 <div style={{ fontSize: 28, lineHeight: 1 }}>🕵️‍♀️ Imposter</div>
@@ -143,89 +136,201 @@ export default function Page() {
 
           {/* Wortduell Game Karte */}
           <article
-  style={{
-    position: 'relative',
-    overflow: 'hidden',
-    border: '1px solid rgba(56,189,248,.35)', // cyan-300 Akzent
-    borderRadius: 14,
-    padding: 16,
-    display: 'grid',
-    alignContent: 'space-between',
-    gap: 12,
-    background: 'transparent',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,.06)'
-  }}
->
-  {/* BG image + gradient overlay */}
-  <div
-    aria-hidden
-    style={{
-      position: 'absolute',
-      inset: 0,
-      backgroundImage: [
-        'linear-gradient(180deg, rgba(5,12,20,.55), rgba(5,12,20,.65))',
-        'url(/wortduell.png)'
-      ].join(','),
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      filter: 'saturate(1.1) brightness(0.92)',
-      transform: 'scale(1.02)'
-    }}
-  />
-  {/* subtle color wash */}
-  <div
-    aria-hidden
-    style={{
-      position: 'absolute',
-      inset: 0,
-      background:
-        'radial-gradient(600px 280px at 90% -10%, rgba(56,189,248,.22), transparent), radial-gradient(500px 240px at -10% 10%, rgba(59,130,246,.18), transparent)'
-    }}
-  />
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              border: '1px solid rgba(56,189,248,.35)',
+              borderRadius: 14,
+              padding: 16,
+              display: 'grid',
+              alignContent: 'space-between',
+              gap: 12,
+              background: 'transparent',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,.06)'
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: [
+                  'linear-gradient(180deg, rgba(5,12,20,.55), rgba(5,12,20,.65))',
+                  'url(/wortduell.png)'
+                ].join(','),
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'saturate(1.1) brightness(0.92)',
+                transform: 'scale(1.02)'
+              }}
+            />
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(600px 280px at 90% -10%, rgba(56,189,248,.22), transparent), radial-gradient(500px 240px at -10% 10%, rgba(59,130,246,.18), transparent)'
+              }}
+            />
 
-  {/* content */}
-  <div style={{ position: 'relative' }}>
-    <header>
-      <div style={{ fontSize: 28, lineHeight: 1 }}>🎯 {t.wortduell__title}</div>
-      <p style={{ marginTop: 6, opacity: 0.9, fontSize: 14 }}>
-        {t.wortduell__desc}
-      </p>
-    </header>
+            <div style={{ position: 'relative' }}>
+              <header>
+                <div style={{ fontSize: 28, lineHeight: 1 }}>🎯 {t.wortduell__title}</div>
+                <p style={{ marginTop: 6, opacity: 0.9, fontSize: 14 }}>
+                  {t.wortduell__desc}
+                </p>
+              </header>
 
-    <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-      <Link
-        href="/wortduell"
-        className="btn btn-accent"
-        style={{
-          padding: '10px 14px',
-          borderRadius: 10,
-          textDecoration: 'none',
-          fontWeight: 600,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
-          color: '#0b1020',
-          boxShadow: '0 6px 20px rgba(59,130,246,.35)'
-        }}
-      >
-        ▶️ {t.wortduell__cta}
-      </Link>
-      <span
-        aria-hidden
-        style={{ alignSelf: 'center', fontSize: 12, opacity: 0.85 }}
-      >
-        {t.wortduell__players_range}
-      </span>
-    </div>
-  </div>
-</article>
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <Link
+                  href="/wortduell"
+                  className="btn btn-accent"
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+                    color: '#0b1020',
+                    boxShadow: '0 6px 20px rgba(59,130,246,.35)'
+                  }}
+                >
+                  ▶️ {t.wortduell__cta}
+                </Link>
+                <span
+                  aria-hidden
+                  style={{ alignSelf: 'center', fontSize: 12, opacity: 0.85 }}
+                >
+                  {t.wortduell__players_range}
+                </span>
+              </div>
+            </div>
+          </article>
 
-
-          {/* Platzhalter für weitere Mini-Games */}
+          {/* Hindernisgame (Solo · endlos) */}
           <article
             style={{
-              border: '1px dashed rgba(99,102,241,.45)', // indigo gestrichelt
+              position: 'relative',
+              overflow: 'hidden',
+              border: '1px solid rgba(74,222,128,.35)',
+              borderRadius: 14,
+              padding: 16,
+              display: 'grid',
+              alignContent: 'space-between',
+              gap: 12,
+              background: 'transparent',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,.06)'
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(600px 280px at -10% -10%, rgba(74,222,128,.22), transparent), radial-gradient(500px 240px at 110% 10%, rgba(34,197,94,.18), transparent)'
+              }}
+            />
+            <div style={{ position: 'relative' }}>
+              <header>
+                <div style={{ fontSize: 28, lineHeight: 1 }}>🏃 Hindernisgame</div>
+                <p style={{ marginTop: 6, opacity: 0.9, fontSize: 14 }}>
+                  Endloser Singleplayer-Runner mit prozeduralen Hindernissen.
+                </p>
+              </header>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <Link
+                  href="/single/hindernisgame"
+                  className="btn btn-accent"
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'linear-gradient(90deg, #34d399, #22c55e)',
+                    color: '#0b1020',
+                    boxShadow: '0 6px 20px rgba(34,197,94,.35)'
+                  }}
+                >
+                  ▶️ Jetzt spielen
+                </Link>
+                <span aria-hidden style={{ alignSelf: 'center', fontSize: 12, opacity: 0.85 }}>
+                  1 Spieler · endlos
+                </span>
+              </div>
+            </div>
+          </article>
+
+          {/* NEU: SkyFlap (Solo · endlos) */}
+          <article
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              border: '1px solid rgba(250,204,21,.45)', // amber-300 Akzent
+              borderRadius: 14,
+              padding: 16,
+              display: 'grid',
+              alignContent: 'space-between',
+              gap: 12,
+              background: 'transparent',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,.06)'
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(600px 280px at 110% -10%, rgba(250,204,21,.22), transparent), radial-gradient(500px 240px at -10% 10%, rgba(253,224,71,.18), transparent)'
+              }}
+            />
+            <div style={{ position: 'relative' }}>
+              <header>
+                <div style={{ fontSize: 28, lineHeight: 1 }}>🐦 SkyFlap</div>
+                <p style={{ marginTop: 6, opacity: 0.9, fontSize: 14 }}>
+                  Flap-Arcade: tippen/Space zum Fliegen – Pipes endlos, Schwierigkeit steigt.
+                </p>
+              </header>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <Link
+                  href="/single/skyflap"
+                  className="btn btn-accent"
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'linear-gradient(90deg, #fde047, #f59e0b)',
+                    color: '#0b1020',
+                    boxShadow: '0 6px 20px rgba(245,158,11,.35)'
+                  }}
+                >
+                  ▶️ Jetzt spielen
+                </Link>
+                <span aria-hidden style={{ alignSelf: 'center', fontSize: 12, opacity: 0.85 }}>
+                  1 Spieler · endlos
+                </span>
+              </div>
+            </div>
+          </article>
+
+          {/* Platzhalter */}
+          <article
+            style={{
+              border: '1px dashed rgba(99,102,241,.45)',
               borderRadius: 14,
               padding: 16,
               display: 'grid',
