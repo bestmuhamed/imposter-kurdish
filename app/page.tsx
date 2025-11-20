@@ -52,7 +52,7 @@ export default function Page() {
           </p>
 
           {/* >>> NEU: CTA zum Singlepager (/single/hero) */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+          {/* <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
             <Link
               href="/single/hero"
               style={{
@@ -71,7 +71,7 @@ export default function Page() {
             >
               ✨ Singlepager öffnen
             </Link>
-          </div>
+          </div> */}
           {/* <<< NEU */}
         </div>
 
