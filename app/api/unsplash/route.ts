@@ -1,33 +1,38 @@
-// /app/api/unsplash/route.ts
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic'
+const ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY!;
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const q = searchParams.get('q') || ''
-  if (!q) return NextResponse.json({ photos: [] })
+  const { searchParams } = new URL(req.url);
+  const q = searchParams.get('q') || '';
+  if (!q) return NextResponse.json({ photos: [] });
 
-  // Unsplash Search API
   const r = await fetch(
     `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=1`,
-    { headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY!}` }, cache: 'no-store' }
-  )
+    { headers: { Authorization: `Client-ID ${ACCESS_KEY}` }, cache: 'no-store' }
+  );
+
   if (!r.ok) {
-    const err = await r.text()
-    return NextResponse.json({ error: 'unsplash_search_failed', detail: err }, { status: 500 })
+    const text = await r.text().catch(() => '');
+    return NextResponse.json({ error: 'unsplash search failed', details: text }, { status: 500 });
   }
-  const json = await r.json()
 
-  const photos = (json.results || []).map((p: any) => ({
-    url: p.urls?.regular || p.urls?.small,
-    // Attribution
-    author: p.user?.name,
-    author_link: p.user?.links?.html,         // Profil
-    photo_link: p.links?.html,                // Foto-Seite
-    // Download-Trigger
-    download_location: p.links?.download_location
-  }))
+  const data = await r.json();
+  const first = data?.results?.[0];
 
-  return NextResponse.json({ photos })
+  
+  console.log('Unsplash pick: +  hier rein?');
+
+  const pick = first ? {
+    url: first.urls?.regular,
+    author: first.user?.name,
+    author_link: first.user?.links?.html,
+    photo_link: first.links?.html,
+    download_location: first.links?.download_location, // <- WICHTIG
+  } : undefined;
+
+
+  console.log('Unsplash pick:', pick?.download_location);
+
+  return NextResponse.json({ photos: pick ? [pick] : [] });
 }

@@ -94,6 +94,8 @@ export default function Page() {
     }
 
 
+    const downloadRef = useRef<string | null>(null) // oben definieren
+
     async function startGame() {
         if (!allNamesFilled) return
         try {
@@ -104,16 +106,14 @@ export default function Page() {
                 w.imageUrl = u.url
                 setImageCredit({
                     author: u.author,
-                    author_link: u.author_link,    // Profil
-                    source_link: u.photo_link      // Foto-Seite
+                    author_link: u.author_link,
+                    source_link: u.photo_link,
                 })
-                // DOWNLOAD TRIGGER (optional, aber für Approval hilfreich)
-                if (u.download_location) {
-                    fetch('/api/unsplash/download?url=' + encodeURIComponent(u.download_location))
-                        .catch(() => { }) // fire-and-forget
-                }
+                // Speichere download_location für später
+                downloadRef.current = u.download_location ?? null
             } else {
                 setImageCredit(null)
+                downloadRef.current = null
             }
 
             setWord(w)
@@ -125,6 +125,7 @@ export default function Page() {
             setIsLoading(false)
         }
     }
+
 
     function nextReveal() {
         if (revealFor == null) return
@@ -153,14 +154,25 @@ export default function Page() {
         if (!openedNow) setOverlayY(0)
         startY.current = null
 
-        if (openedNow && word && !word.imageUrl) {
-            const u = await getUnsplash(word.term)
-            if (u?.url) {
-                setWord(prev => prev ? { ...prev, imageUrl: u.url } : prev)
-                setImageCredit({ author: u.author, author_link: u.author_link })
-            }
+        // Nur beim Aufdecken der echten Karte (nicht beim Imposter)
+        if (openedNow && revealFor !== imposterId && downloadRef.current) {
+            try {
+                const r = await fetch(
+                    '/api/unsplash/download?url=' + encodeURIComponent(downloadRef.current),
+                    { cache: 'no-store' }
+                )
+                const json = await r.json()
+                if (json?.ok && json?.fileUrl) {
+                    // 👉 hier wird jetzt das „offizielle“ Download-Bild geladen
+                    setWord(prev => (prev ? { ...prev, imageUrl: json.fileUrl } : prev))
+                    console.log('Unsplash official download URL:', json.fileUrl)
+                }
+                console.log('Unsplash download trigger result:', json)
+            } catch { }
+            downloadRef.current = null // nur 1x
         }
     }
+
 
     return (
         <main
@@ -319,7 +331,7 @@ export default function Page() {
                             height: 320,
                             border: '1px solid rgba(255,255,255,.12)',
                             background: 'linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03))',
-                            padding:16,
+                            padding: 16,
                         }}
                     >
                         {/* Avatar-Layer */}
@@ -442,14 +454,14 @@ export default function Page() {
                                     <div className="sub" style={{ opacity: .8, fontSize: 12, marginTop: 8 }}>
                                         Photo by{' '}
                                         <a
-                                            href={`${imageCredit.author_link}?utm_source=imposter_kurdish&utm_medium=referral`}
+                                            href={`${imageCredit.author_link}?utm_source=kurdish-imposter&utm_medium=referral`}
                                             target="_blank" rel="noreferrer"
                                         >
                                             {imageCredit.author}
                                         </a>{' '}
                                         on{' '}
                                         <a
-                                            href={`${imageCredit.source_link}?utm_source=imposter_kurdish&utm_medium=referral`}
+                                            href={`${imageCredit.source_link}?utm_source=kurdish-imposter&utm_medium=referral`}
                                             target="_blank" rel="noreferrer"
                                         >
                                             Unsplash

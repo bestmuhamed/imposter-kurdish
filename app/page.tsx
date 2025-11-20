@@ -50,6 +50,29 @@ export default function Page() {
           <p style={{ opacity: 0.85, fontSize: 16 }}>
             {t.home__lead_prefix} <em>Imposter</em>.
           </p>
+
+          {/* >>> NEU: CTA zum Singlepager (/single/hero) */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+            <Link
+              href="/single/hero"
+              style={{
+                padding: '10px 14px',
+                borderRadius: 10,
+                textDecoration: 'none',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'linear-gradient(90deg, #a78bfa, #f472b6)',
+                color: '#0b1020',
+                border: '1px solid rgba(255,255,255,.18)',
+                boxShadow: '0 6px 20px rgba(167,139,250,.25)'
+              }}
+            >
+              ✨ Singlepager öffnen
+            </Link>
+          </div>
+          {/* <<< NEU */}
         </div>
 
         {/* Liste */}
@@ -269,12 +292,12 @@ export default function Page() {
             </div>
           </article>
 
-          {/* NEU: SkyFlap (Solo · endlos) */}
+          {/* SkyFlap (Solo · endlos) */}
           <article
             style={{
               position: 'relative',
               overflow: 'hidden',
-              border: '1px solid rgba(250,204,21,.45)', // amber-300 Akzent
+              border: '1px solid rgba(250,204,21,.45)',
               borderRadius: 14,
               padding: 16,
               display: 'grid',
